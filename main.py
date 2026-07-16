@@ -3,6 +3,7 @@ from providers.ollama.provider import OllamaProvider
 from prompts.loader import load_prompt
 from core.loop import Agent
 from tools.loader import load_tools
+from skills.loader import load_skills, format_skills_prompt
 
 
 def main():
@@ -12,11 +13,12 @@ def main():
         host=config["host"],
         num_ctx=config["num_ctx"]
     )
-    system_prompt = load_prompt("system", "default")
+    skills = load_skills()
+    system_prompt = load_prompt("system", "default") + format_skills_prompt(skills)
     tools = load_tools()
     agent = Agent(provider, system_prompt, tools)
 
-    print(f"Harness v0 modèle : {provider.model} | {len(tools)} tools : {', '.join(tools)} | 'exit' pour quitter.\n")
+    print(f"Harness v0 modèle : {provider.model} | {len(tools)} tools : {', '.join(tools)}  | {len(skills)} skills : {', '.join([skill['name'] for skill in skills])} | 'exit' pour quitter.\n")
     while True:
         try:
             user_input = input("vous > ").strip()
