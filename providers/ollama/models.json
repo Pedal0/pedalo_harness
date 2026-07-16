@@ -1,0 +1,17 @@
+{
+  "default": "laguna-xs-2.1:latest",
+  "host": "http://localhost:11434",
+  "num_ctx": 120000,
+  "models": [
+    {
+      "name": "laguna-xs-2.1:latest",
+      "description": "MoE 33B (3B actifs), agentique et code, tool calling natif",
+      "context_window": 262144
+    },
+    {
+      "name": "ornith:latest",
+      "description": "Ancien modèle, pas de support tools",
+      "context_window": 32768
+    }
+  ]
+}
