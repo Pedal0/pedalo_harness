@@ -47,6 +47,8 @@ def run(command: str) -> str:
             capture_output=True,
             text=True,
             timeout=60,
+            encoding="utf-8",
+            errors="replace"
         )
     except subprocess.TimeoutExpired:
         return "Error: command timed out after 60 seconds."
