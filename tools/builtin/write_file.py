@@ -22,6 +22,8 @@ SCHEMA = {
     }
 }
 
+REQUIRES_CONFIRMATION = True
+
 def run(path: str, content: str) -> str:
     file = Path(path)
     file.parent.mkdir(parents=True, exist_ok=True)
