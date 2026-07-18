@@ -5,15 +5,16 @@ from providers.base import BaseProvider
 
 class Agent:
     def __init__(self, provider: BaseProvider, system_prompt: str, tools: dict | None = None,
-                 on_tool_call=None, on_tool_result=None, confirm=None):
+                 on_tool_call=None, on_tool_result=None, on_thinking=None, confirm=None):
         self.provider = provider
         self.tools = tools or {}
         self.messages = [{"role": "system", "content": system_prompt}]
         self.always_allowed = set()
+
         self.on_tool_call = on_tool_call or self._default_on_tool_call
         self.on_tool_result = on_tool_result or (lambda name, result: None)
+        self.on_thinking = on_thinking or (lambda thinking: None)
         self.confirm = confirm or self._default_confirm
-
 
     def _default_on_tool_call(self, name: str, arguments: dict):
         print(f"  {name}({json.dumps(arguments, ensure_ascii=False)})")
@@ -30,6 +31,8 @@ class Agent:
 
         while True:
             response = self.provider.chat(self.messages, self.tool_schemas)
+            if response.thinking:
+                self.on_thinking(response.thinking)
 
             if not response.tool_calls:
                 self.messages.append({"role": "assistant", "content": response.text})

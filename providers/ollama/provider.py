@@ -1,13 +1,18 @@
+import re
+
 import requests
 
 from providers.base import BaseProvider, ModelResponse, ToolCall
 
+THINK_TAGS = re.compile(r"<think>(.*?)</think>", re.DOTALL)
+
 
 class OllamaProvider(BaseProvider):
-    def __init__(self, model: str, host: str, num_ctx: int = 8192):
+    def __init__(self, model: str, host: str, num_ctx: int = 8192, think: bool = False):
         self.model = model
         self.host = host
         self.num_ctx = num_ctx
+        self.think = think
 
     def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ModelResponse:
         payload = {
@@ -16,6 +21,8 @@ class OllamaProvider(BaseProvider):
             "stream": False,
             "options": {"num_ctx": self.num_ctx},
         }
+        if self.think:
+            payload["think"] = True
         if tools:
             payload["tools"] = tools
 
@@ -37,7 +44,12 @@ class OllamaProvider(BaseProvider):
                 arguments=fn.get("arguments", {}),
             ))
 
-        return ModelResponse(
-            text=message.get("content", "") or "",
-            tool_calls=tool_calls,
-        )
+        text = message.get("content", "") or ""
+        thinking = message.get("thinking", "") or ""
+        if not thinking:
+            found = THINK_TAGS.findall(text)
+            if found:
+                thinking = "\n".join(found).strip()
+                text = THINK_TAGS.sub("", text).strip()
+
+        return ModelResponse(text=text, thinking=thinking, tool_calls=tool_calls)
