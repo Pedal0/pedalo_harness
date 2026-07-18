@@ -22,6 +22,8 @@ class PedaloApp(App):
     Input { margin: 0 1 1 1; }
     Collapsible { margin: 0 0 1 2; }
     .agent-msg { margin: 0 0 1 1; }
+    .tool-output { height: auto; max-height: 14; overflow-y: auto; background: $surface; padding: 0 1; }
+    .tool-args { color: $text-muted; padding: 0 1; }
     """
 
     def __init__(self, agent, skills: list[dict]):
@@ -90,15 +92,35 @@ class PedaloApp(App):
         target = arguments.get("path") or arguments.get("command") or ""
         target = str(target)[:60]
         self.call_from_thread(self.query_one(Lake).set_activity, f"{name} → {target}")
+
         args = json.dumps(arguments, ensure_ascii=False)
-        col = Collapsible(Static(args), title=f"⚙ {name}  [dim]{target}[/dim]", collapsed=True)
+        if len(args) > 500:
+            args = args[:500] + "…"
+        col = Collapsible(
+            Static(args, classes="tool-args"),
+            title=f"⚙ {name}  [dim]{target}[/dim]  [yellow]…[/yellow]",
+            collapsed=True,
+        )
         self.call_from_thread(self._chat_mount, col)
         self._pending = col
+        self._pending_target = target
 
     def _on_tool_result(self, name: str, result: str):
-        preview = result if len(result) < 3000 else result[:3000] + "…"
+        is_error = result.startswith("Error")
+        lines = result.count("\n") + 1
+        if is_error:
+            badge = f"[red]✗ {result[:80]}[/red]"
+        elif lines > 1:
+            badge = f"[green]✓[/green] [dim]{lines} lines[/dim]"
+        else:
+            badge = f"[green]✓[/green] [dim]{result[:60]}[/dim]"
+
+        col = self._pending
+        target = self._pending_target
+
         def fill():
-            self._pending.mount(Static(f"[green]result :[/green]\n{preview}"))
+            col.title = f"⚙ {name}  [dim]{target}[/dim]  {badge}"
+            col.mount(VerticalScroll(Static(result), classes="tool-output"))
         self.call_from_thread(fill)
 
     def _confirm(self, name: str, arguments: dict) -> str:

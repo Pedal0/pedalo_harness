@@ -1,13 +1,16 @@
 import re
 import subprocess
+import platform
+
+IS_WINDOWS = platform.system() == "Windows"
 
 SCHEMA = {
     "type": "function",
     "function": {
         "name": "bash",
         "description": (
-            "Execute a shell command on Windows (PowerShell syntax). "
-            "Returns stdout, stderr and exit code. "
+            f"Execute a shell command ({'PowerShell' if IS_WINDOWS else 'bash'} syntax, "
+            f"{platform.system()}). Returns stdout, stderr and exit code. "
             "The user must approve each command before it runs."
         ),
         "parameters": {
@@ -15,7 +18,7 @@ SCHEMA = {
             "properties": {
                 "command": {
                     "type": "string",
-                    "description": "The shell command to run (PowerShell syntax)"
+                    "description": f"The shell command to run ({'PowerShell' if IS_WINDOWS else 'bash'} syntax)"
                 }
             },
             "required": ["command"]
@@ -41,14 +44,20 @@ def run(command: str) -> str:
         if re.search(pattern, command, re.IGNORECASE):
             return "Error: command blocked by safety policy. It was not executed."
 
+    if IS_WINDOWS:
+        wrapped = f"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; {command}"
+        cmd = ["powershell", "-NoProfile", "-Command", wrapped]
+    else:
+        cmd = ["bash", "-c", command]
+
     try:
         result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", command],
+            cmd,
             capture_output=True,
             text=True,
-            timeout=60,
             encoding="utf-8",
-            errors="replace"
+            errors="replace",
+            timeout=60,
         )
     except subprocess.TimeoutExpired:
         return "Error: command timed out after 60 seconds."

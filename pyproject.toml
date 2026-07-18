@@ -1,0 +1,16 @@
+[project]
+name = "pedalo"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["requests", "textual"]
+
+[project.scripts]
+pedalo = "pedalo:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["pedalo", "main"]
+packages = ["core", "providers", "providers.ollama", "prompts", "tools", "tools.builtin", "skills", "ui", "brain"]
