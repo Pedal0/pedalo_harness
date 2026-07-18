@@ -56,8 +56,17 @@ def run(path: str, offset: int = 0, limit: int = 500) -> str:
     content = "\n".join(chunk_lines)
 
     if len(content) > MAX_CHARS:
-        omitted = len(content) - MAX_CHARS
-        content = f"{content[:MAX_CHARS]}\n\n[Truncated {omitted} characters within this chunk]"
+        kept_lines = []
+        used = 0
+        for line in chunk_lines:
+            if used + len(line) + 1 > MAX_CHARS:
+                break
+            kept_lines.append(line)
+            used += len(line) + 1
+        if not kept_lines:
+            kept_lines = [chunk_lines[0][:MAX_CHARS] + "…"]
+        content = "\n".join(kept_lines)
+        chunk_lines = kept_lines
 
     end = offset + len(chunk_lines)
     if end < total:

@@ -20,3 +20,6 @@ class BaseProvider(ABC):
     @abstractmethod
     def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ModelResponse:
         pass
+
+    def list_models(self) -> list[str]:
+        return []

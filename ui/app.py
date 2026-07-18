@@ -4,9 +4,10 @@ from pathlib import Path
 
 import pyperclip
 from textual.app import App, ComposeResult
-from textual.containers import VerticalScroll
-from textual.widgets import Collapsible, Input, Markdown, Static
+from textual.containers import VerticalScroll, Vertical
+from textual.widgets import Collapsible, Input, Markdown, Static, Select
 from textual.suggester import SuggestFromList
+
 
 from ui.lake import Lake
 from ui.confirm import ConfirmScreen
@@ -28,6 +29,8 @@ class PedaloApp(App):
     .tool-args { color: $text-muted; padding: 0 1; }
     .thinking { color: $text-muted; }
     .copy-link { margin: 0 0 1 2; width: auto; }
+    #model-select { width: 45; margin: 0 2; }
+    #model-select SelectOverlay { max-height: 12; }
     """
 
     def __init__(self, agent, skills: list[dict], project_root: Path):
@@ -44,12 +47,19 @@ class PedaloApp(App):
         
 
     def compose(self) -> ComposeResult:
-        yield Static(BANNER.format(
-            provider=type(self.agent.provider).__name__,
-            model=self.agent.provider.model,
-            tools=len(self.agent.tools),
-            skills=len(self.skills),
-        ), id="banner")
+        with Vertical(id="banner"):
+            yield Static(self._banner_text(), id="banner-text")
+            models = self.agent.provider.list_models()
+            if models:
+                current = self.agent.provider.model
+                if current not in models:
+                    models = [current] + models
+                yield Select(
+                    [(m, m) for m in models],
+                    value=current,
+                    allow_blank=False,
+                    id="model-select",
+                )
         yield VerticalScroll(id="chat")
         yield Lake()
         suggestions = [f"/skill {s['name']} " for s in self.skills] + ["/exit", "/copy"]
@@ -188,3 +198,20 @@ class PedaloApp(App):
             self.notify("Copied to clipboard ✓")
         except pyperclip.PyperclipException:
             self.notify("Clipboard unavailable", severity="error")
+
+    def on_select_changed(self, event: Select.Changed):
+        if event.select.id != "model-select":
+            return
+        if event.value == self.agent.provider.model:
+            return
+        self.agent.provider.model = event.value
+        self.notify(f"Model switched to {event.value}")
+        self.query_one("#banner-text", Static).update(self._banner_text())
+
+    def _banner_text(self) -> str:
+        return BANNER.format(
+            provider=type(self.agent.provider).__name__,
+            model=self.agent.provider.model,
+            tools=len(self.agent.tools),
+            skills=len(self.skills),
+        )

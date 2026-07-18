@@ -53,3 +53,12 @@ class OllamaProvider(BaseProvider):
                 text = THINK_TAGS.sub("", text).strip()
 
         return ModelResponse(text=text, thinking=thinking, tool_calls=tool_calls)
+    
+    def list_models(self) -> list[str]:
+        try:
+            resp = requests.get(f"{self.host}/api/tags", timeout=5)
+            resp.raise_for_status()
+            data = resp.json()
+            return sorted(m["name"] for m in data.get("models", []))
+        except requests.RequestException:
+            return []
