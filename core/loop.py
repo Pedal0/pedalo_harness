@@ -79,3 +79,17 @@ class Agent:
             return str(tool["run"](**arguments))
         except Exception as e:
             return f"Error executing tool '{name}': {e}"
+        
+
+    def estimate_tokens(self) -> int:
+        total_chars = 0
+        for message in self.messages:
+            total_chars += len(json.dumps(message, ensure_ascii=False))
+        return total_chars // 4
+
+    @property
+    def context_usage(self) -> float:
+        return self.estimate_tokens() / self.provider.num_ctx
+
+    def _should_compact(self, threshold: float = 0.75) -> bool:
+        return self.context_usage > threshold

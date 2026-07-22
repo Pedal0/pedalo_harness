@@ -17,6 +17,7 @@ class ModelResponse:
 
 
 class BaseProvider(ABC):
+    num_ctx: int = 8192
     @abstractmethod
     def chat(self, messages: list[dict], tools: list[dict] | None = None) -> ModelResponse:
         pass
