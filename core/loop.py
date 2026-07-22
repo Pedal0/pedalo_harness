@@ -6,7 +6,7 @@ from providers.base import BaseProvider
 
 class Agent:
     def __init__(self, provider: BaseProvider, system_prompt: str, tools: dict | None = None,
-                 on_tool_call=None, on_tool_result=None, on_thinking=None, confirm=None):
+                 on_tool_call=None, on_tool_result=None, on_thinking=None, confirm=None, on_compact=None):
         self.provider = provider
         self.tools = tools or {}
         self.messages = [{"role": "system", "content": system_prompt}]
@@ -16,6 +16,7 @@ class Agent:
         self.on_tool_result = on_tool_result or (lambda name, result: None)
         self.on_thinking = on_thinking or (lambda thinking: None)
         self.confirm = confirm or self._default_confirm
+        self.on_compact = on_compact or (lambda tokens: None)
 
     def _default_on_tool_call(self, name: str, arguments: dict):
         print(f"  {name}({json.dumps(arguments, ensure_ascii=False)})")
@@ -30,7 +31,7 @@ class Agent:
     def run(self, user_input: str) -> str:
         if self._should_compact():
             self._compact()
-            
+
         self.messages.append({"role": "user", "content": user_input})
 
         while True:
@@ -95,7 +96,7 @@ class Agent:
     def context_usage(self) -> float:
         return self.estimate_tokens() / self.provider.num_ctx
 
-    def _should_compact(self, threshold: float = 0.75) -> bool:
+    def _should_compact(self, threshold: float = 0.02) -> bool:
         return self.context_usage > threshold
     
     def _compact(self):
