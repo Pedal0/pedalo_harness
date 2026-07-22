@@ -1,5 +1,6 @@
 import json
 
+from prompts.loader import load_prompt
 from providers.base import BaseProvider
 
 
@@ -27,6 +28,9 @@ class Agent:
         return [t["schema"] for t in self.tools.values()]
 
     def run(self, user_input: str) -> str:
+        if self._should_compact():
+            self._compact()
+            
         self.messages.append({"role": "user", "content": user_input})
 
         while True:
@@ -93,3 +97,26 @@ class Agent:
 
     def _should_compact(self, threshold: float = 0.75) -> bool:
         return self.context_usage > threshold
+    
+    def _compact(self):
+        keep_recent = 6
+        system = self.messages[0]
+        to_summarize = self.messages[1:-keep_recent] if len(self.messages) > keep_recent + 1 else self.messages[1:]
+        recent = self.messages[-keep_recent:] if len(self.messages) > keep_recent + 1 else []
+
+        if not to_summarize:
+            return
+
+        history_text = "\n".join(
+            json.dumps(m, ensure_ascii=False) for m in to_summarize
+        )
+
+        prompt = load_prompt("compaction", "summarize").format(history=history_text)
+        response = self.provider.chat([{"role": "user", "content": prompt}], tools=None)
+
+        summary_message = {
+            "role": "user",
+            "content": f"[Summary of earlier conversation]\n{response.text}",
+        }
+        self.messages = [system, summary_message] + recent
+        self.on_compact(self.estimate_tokens())

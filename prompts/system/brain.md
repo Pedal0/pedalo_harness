@@ -5,7 +5,7 @@ MAP.md (structure), lessons.md (past problems→solutions),
 decisions.md (choices made), state.md (current task).
 
 ## At the START of any task
-___TROU_1___
+Read .pedalo/MAP.md before doing anything else, to understand the project structure.
 
 ## BEFORE giving your final answer
 This step is not optional. Check both points:
