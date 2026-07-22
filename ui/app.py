@@ -43,6 +43,7 @@ class PedaloApp(App):
         agent.on_tool_call = self._on_tool_call
         agent.on_tool_result = self._on_tool_result
         agent.on_thinking = self._on_thinking
+        agent.on_compact = self._on_compact
         agent.confirm = self._confirm
         
 
@@ -214,4 +215,11 @@ class PedaloApp(App):
             model=self.agent.provider.model,
             tools=len(self.agent.tools),
             skills=len(self.skills),
+        )
+    
+    def _on_compact(self, tokens: int):
+        self.session_log.append("🗜 context compacted")
+        self.call_from_thread(
+            self._chat_mount,
+            Static(f"[dim]🗜 context compacted now ~{tokens} tokens[/dim]"),
         )
