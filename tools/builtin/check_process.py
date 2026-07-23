@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+import time
 
 SCHEMA = {
     "type": "function",
@@ -50,12 +51,24 @@ def run(process_id: str) -> str:
     elif _is_running(meta["pid"]):
         status = "running"
     else:
-        meta["finished_at"] = datetime.now().isoformat()
-        meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-        status = f"finished (detected now, at {meta['finished_at']})"
+        recently_active = False
+        if log_path.exists():
+            age = time.time() - log_path.stat().st_mtime
+            recently_active = age < 10
+        if recently_active:
+            status = "probably running (log still being written)"
+        else:
+            meta["finished_at"] = datetime.now().isoformat()
+            meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+            status = f"finished (detected now, at {meta['finished_at']})"
 
     if log_path.exists():
-        lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+        raw = log_path.read_bytes()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            text = raw.decode("cp850", errors="replace")
+        lines = text.splitlines()
         tail = "\n".join(lines[-30:])
     else:
         tail = "(no log output)"

@@ -28,14 +28,15 @@ class Agent:
     def tool_schemas(self) -> list[dict]:
         return [t["schema"] for t in self.tools.values()]
 
-    def run(self, user_input: str) -> str:
+    def run(self, user_input: str, max_iterations: int = 25) -> str:
         if self._should_compact():
             self._compact()
 
         self.messages.append({"role": "user", "content": user_input})
 
-        while True:
+        for _ in range(max_iterations):
             response = self.provider.chat(self.messages, self.tool_schemas)
+
             if response.thinking:
                 self.on_thinking(response.thinking)
 
@@ -60,6 +61,8 @@ class Agent:
                     "tool_call_id": tc.id,
                     "content": result,
                 })
+
+        return "Stopped: reached the maximum number of tool iterations for this request."
 
     def _execute(self, name: str, arguments: dict) -> str:
         tool = self.tools.get(name)

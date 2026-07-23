@@ -1,4 +1,5 @@
 import json
+import platform
 import subprocess
 import time
 from datetime import datetime
@@ -39,16 +40,28 @@ def run(command: str) -> str:
 
     try:
         log_file = open(log_path, "w", encoding="utf-8")
-        process = subprocess.Popen(
-            command,
-            shell=True,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            text=True,
-            cwd=Path.cwd(),
-        )
+
+        popen_kwargs = {
+            "stdout": log_file,
+            "stderr": subprocess.STDOUT,
+            "stdin": subprocess.DEVNULL,
+            "text": True,
+            "cwd": Path.cwd(),
+        }
+
+        if platform.system() == "Windows":
+            popen_kwargs["creationflags"] = (
+                subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+            )
+            cmd = ["cmd", "/c", f"chcp 65001>nul & {command}"]
+        else:
+            popen_kwargs["start_new_session"] = True
+            cmd = ["bash", "-c", command]
+
+        process = subprocess.Popen(cmd, **popen_kwargs)
     except Exception as e:
         return f"Error: could not start command: {e}"
+
     meta = {
         "id": proc_id,
         "command": command,

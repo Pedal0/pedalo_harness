@@ -224,3 +224,6 @@ class PedaloApp(App):
             self._chat_mount,
             Static(f"[dim]🗜 context compacted now ~{tokens} tokens[/dim]"),
         )
+
+    def on_unmount(self):
+        self.workers.cancel_all()
