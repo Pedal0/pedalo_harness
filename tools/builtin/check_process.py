@@ -73,8 +73,17 @@ def run(process_id: str) -> str:
     else:
         tail = "(no log output)"
 
+    if "running" in status:
+        advice = (
+            "\n\nThe process is still running. Do NOT call check_process again now. "
+            "Report the current status to the user and end your turn. "
+            "The user monitors the process in the UI and will ask you to check again if needed."
+        )
+    else:
+        advice = ""
+
     return (
         f"Process {process_id}: {status}\n"
         f"Command: {meta['command']}\n"
-        f"--- last output ---\n{tail}"
+        f"--- last output ---\n{tail}{advice}"
     )
