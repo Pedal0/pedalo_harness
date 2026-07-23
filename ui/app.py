@@ -22,7 +22,7 @@ class PedaloApp(App):
     Screen { layout: vertical; }
     #banner { padding: 1 2; border: round cyan; margin: 1 1 0 1; height: auto; }
     #chat { margin: 0 1; }
-    Lake { height: 3; margin: 0 2; }
+    Lake { height: 4; margin: 0 2; }
     Input { margin: 0 1 1 1; }
     Collapsible { margin: 0 0 1 2; }
     .agent-msg { margin: 0 0 1 1; }
@@ -121,7 +121,7 @@ class PedaloApp(App):
         idx = len(self.agent_messages) - 1
         self.call_from_thread(self._chat_mount, Markdown(f"**⛵ pedalo >** {answer}", classes="agent-msg"))
         self.call_from_thread(self._chat_mount,
-            Static(f"[dim][@click=app.copy_msg({idx})]\\[ copy \\][/][/dim]", classes="copy-link"))
+            Static(f"[dim][@click=app.copy_msg({idx})]\\[ copy ][/][/dim]", classes="copy-link"))
         self.call_from_thread(self.query_one(Lake).set_activity, None)
 
     def _on_thinking(self, thinking: str):

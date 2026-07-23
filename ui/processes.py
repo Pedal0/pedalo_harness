@@ -2,9 +2,9 @@ import json
 import time
 from pathlib import Path
 
-from textual.app import ComposeResult
-from textual.containers import Vertical
 from textual.widgets import Static
+
+from ui.lake import Lake
 
 
 class ProcessBar(Static):
@@ -45,6 +45,10 @@ class ProcessBar(Static):
             lines.append(f"⛵ [b]{command}[/b] · {elapsed} · [dim]{last[:60]}[/dim]")
 
         self.update("\n".join(lines))
+        try:
+            self.app.query_one(Lake).set_processes(len(lines))
+        except Exception:
+            pass
 
     def _last_line(self, log_path: Path) -> str:
         try:
