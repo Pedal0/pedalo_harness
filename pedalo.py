@@ -10,6 +10,18 @@ from skills.loader import load_skills, format_skills_prompt
 from brain.scanner import ensure_brain
 from ui.app import PedaloApp
 
+import sys
+import traceback
+
+
+def _log_crash(exc_type, exc_value, exc_tb):
+    with open("pedalo_crash.log", "a", encoding="utf-8") as f:
+        f.write("=== CRASH ===\n")
+        traceback.print_exception(exc_type, exc_value, exc_tb, file=f)
+
+
+sys.excepthook = _log_crash
+
 
 def main():
     project_root = Path.cwd()

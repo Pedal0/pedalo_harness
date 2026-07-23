@@ -112,7 +112,8 @@ class PedaloApp(App):
         try:
             answer = self.agent.run(prompt)
         except Exception as e:
-            answer = f"*Error : {e}*"
+            import traceback
+            answer = f"*Error: {e}*\n\n```\n{traceback.format_exc()}\n```"
         self.session_log.append(f"## pedalo\n\n{answer}")
         self.agent_messages.append(answer)
         idx = len(self.agent_messages) - 1
