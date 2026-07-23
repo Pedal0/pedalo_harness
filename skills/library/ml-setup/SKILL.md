@@ -47,19 +47,26 @@ except ImportError:
     print("torch: not installed")
 ```
 
-## Étape 2 — Choisir l'installation PyTorch
+## Étape 2 — Installation de PyTorch : rediriger l'utilisateur
 
-| Hardware détecté | Commande |
-|---|---|
-| Pas de GPU NVIDIA | `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
-| GPU compute capability 12.x (RTX 50xx / Blackwell) | `pip install torch --index-url https://download.pytorch.org/whl/cu128` |
-| GPU compute capability 8.x / 9.x (RTX 30xx/40xx) | `pip install torch --index-url https://download.pytorch.org/whl/cu124` |
+Les commandes d'installation PyTorch dépendent de la version CUDA et changent
+régulièrement. N'invente JAMAIS une commande pip pour torch, et n'exécute pas
+d'installation toi-même.
 
-Ne jamais faire `pip install torch` sans index : la build par défaut peut
-être incompatible avec le GPU détecté.
+À la place :
+1. Rapporte le hardware détecté à l'étape 1 (GPU, compute capability, driver).
+2. Dirige l'utilisateur vers le sélecteur officiel : https://pytorch.org/get-started/locally/
+   Il y choisit son OS, son gestionnaire de paquets et sa version CUDA,
+   et le site génère la commande exacte à jour.
+3. Attends que l'utilisateur confirme l'installation faite.
+4. Vérifie ensuite avec bash :
+   `python -c "import torch; print(torch.__version__, torch.cuda.is_available())"`
+   - Si `cuda_available` est False alors qu'un GPU a été détecté à l'étape 1 :
+     signale-le, c'est probablement une build CPU installée par erreur.
+   - Si torch n'est pas installé, redemande à l'utilisateur.
 
-Vérifier après installation :
-`python -c "import torch; print(torch.cuda.is_available())"`
+Si aucun GPU n'a été détecté, la version CPU par défaut convient et
+l'utilisateur peut installer sans se soucier de l'index CUDA.
 
 ## Étape 3 — Choisir la librairie AutoML
 
