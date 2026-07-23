@@ -11,6 +11,7 @@ from textual.suggester import SuggestFromList
 
 from ui.lake import Lake
 from ui.confirm import ConfirmScreen
+from ui.processes import ProcessBar
 
 BANNER = """[b cyan]  ⛵ P E D A L O[/b cyan]  [dim] local harness[/dim]
 [dim]provider:[/dim] {provider}   [dim]model:[/dim] {model}   [dim]tools:[/dim] {tools}   [dim]skills:[/dim] {skills}"""
@@ -63,6 +64,7 @@ class PedaloApp(App):
                 )
         yield VerticalScroll(id="chat")
         yield Lake()
+        yield ProcessBar()
         suggestions = [f"/skill {s['name']} " for s in self.skills] + ["/exit", "/copy"]
         yield Input(placeholder="Your request…  (/skill <name> <request>, /copy, /exit)",
                     suggester=SuggestFromList(suggestions, case_sensitive=False))
