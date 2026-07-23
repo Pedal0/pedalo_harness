@@ -22,7 +22,7 @@ class PedaloApp(App):
     Screen { layout: vertical; }
     #banner { padding: 1 2; border: round cyan; margin: 1 1 0 1; height: auto; }
     #chat { margin: 0 1; }
-    Lake { height: 4; margin: 0 2; }
+    Lake { height: 3; margin: 0 2; }
     Input { margin: 0 1 1 1; }
     Collapsible { margin: 0 0 1 2; }
     .agent-msg { margin: 0 0 1 1; }
